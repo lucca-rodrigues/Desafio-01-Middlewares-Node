@@ -10,19 +10,71 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+
+  const userExistis = users.find(user => username === user.username);
+
+  if (!userExistis) {
+    return response.status(404).json({ error: "User does not exist!" });
+  }
+
+  request.user = userExistis;
+
+  return next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const { user } = request;
+
+  const { pro, todos } = user;
+
+  console.log(pro, todos);
+
+  if (!pro && todos.length > 9) {
+    return response.status(403).json({ error: "User reached maximum number of Todos. Time to go Pro!" });
+  }
+
+  return next();
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  if (!validate(id)) {
+    return response.status(400).json({ error: "Id is not a valid UUID!" });
+  }
+
+  const userExistis = users.find(user => username === user.username);
+
+  if (!userExistis) {
+    return response.status(404).json({ error: "User does not exist!" });
+  }
+
+  const todoExistis = userExistis.todos.find(todo => id === todo.id);
+
+  if (!todoExistis) {
+    return response.status(404).json({ error: "Todo does not exist!" });
+  }
+
+  request.todo = todoExistis;
+  request.user = userExistis;
+
+  return next();
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const { id } = request.params;
+
+  const userExistis = users.find(user => id === user.id);
+
+  if (!userExistis) {
+    return response.status(404).json({ error: "User does not exist!" });
+  }
+
+  request.user = userExistis;
+
+  return next();
 }
 
 app.post('/users', (request, response) => {
@@ -112,7 +164,7 @@ app.delete('/todos/:id', checksExistsUserAccount, checksTodoExists, (request, re
   const todoIndex = user.todos.indexOf(todo);
 
   if (todoIndex === -1) {
-    return response.status(404).json({ error: 'Todo not found' });
+    return response.status(404).json({ error: 'Todo not Existis' });
   }
 
   user.todos.splice(todoIndex, 1);
